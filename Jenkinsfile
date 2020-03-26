@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'NIFI_SERVER_URL', defaultValue: 'http://172.17.0.2:8080', description: 'NiFi server to upload templates to')
+        string(name: 'NIFI_SERVER_URL', defaultValue: 'http://localhost:8080', description: 'NiFi server to upload templates to')
     }
 
     stages {
