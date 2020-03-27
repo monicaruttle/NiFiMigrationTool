@@ -20,7 +20,7 @@ pipeline {
                         def responseMessage = response.tokenize('.').first()
                         def responseCode = response.tokenize('.').last()
 
-                        if (responseCode == '409' && ${params.REPLACE_CONFLICTS}) {
+                        if (responseCode == '409' && params.REPLACE_CONFLICTS) {
                             // need to delete the existing template before uploading the new one.
                             def templateName = responseMessage.replace("A template named '",'')
                             templateName = templateName.replace("' already exists",'')
