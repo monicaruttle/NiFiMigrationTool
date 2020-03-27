@@ -2,6 +2,7 @@ pipeline {
     agent any
     parameters {
         string(name: 'NIFI_SERVER_URL', defaultValue: 'http://localhost:8080', description: 'NiFi server to upload templates to')
+        booleanParam(name: 'REPLACE_CONFLICTS', defaultValue: true, description: 'Replace any templates that have a name conflict with the one being uploaded')
     }
 
     stages {
@@ -19,7 +20,7 @@ pipeline {
                         def responseMessage = response.tokenize('.').first()
                         def responseCode = response.tokenize('.').last()
 
-                        if (responseCode == '409') {
+                        if (responseCode == '409' && ${params.REPLACE_CONFLICTS}) {
                             // need to delete the existing template before uploading the new one.
                             def templateName = responseMessage.replace("A template named '",'')
                             templateName = templateName.replace("' already exists",'')
@@ -46,7 +47,9 @@ pipeline {
                                 responseMessage = response.tokenize('.').first()
                                 error "Received HTTP response code ${responseCode} when uploading ${templateName}, response from server:\n${responseMessage}"
                             }
-                        } else if (responseCode != '201') {
+                        } else if (responseCode == '409') {
+                            echo "A template with the same name as $it already exists, and replacing duplicates is set to false. Skipping template."
+                        }else if (responseCode != '201') {
                             error "Received HTTP response code ${responseCode} when uploading $it, response from server:\n${responseMessage}"
                         }
                     }
