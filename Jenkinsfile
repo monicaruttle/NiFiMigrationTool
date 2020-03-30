@@ -13,7 +13,7 @@ pipeline {
                     echo "Uploading templates to ${params.NIFI_SERVER_URL}..."
 
                     echo "Retrieving root process group ID"
-                    def rootProcessGroupInfo = readJSON text: sh(script: "${params.NIFI_SERVER_URL}/nifi-api/flow/process-groups/root", returnStdout: true)
+                    def rootProcessGroupInfo = readJSON text: sh(script: "curl ${params.NIFI_SERVER_URL}/nifi-api/flow/process-groups/root", returnStdout: true)
                     def rootProcessGroupId = rootProcessGroupInfo['processGroupFlow']['id']
 
                     if (params.TEMPLATES == '') {
