@@ -3,6 +3,7 @@ pipeline {
     parameters {
         string(name: 'NIFI_SERVER_URL', defaultValue: 'http://localhost:8080', description: 'NiFi server to upload templates to')
         booleanParam(name: 'REPLACE_CONFLICTS', defaultValue: true, description: 'Replace any templates that have a name conflict with the one being uploaded')
+        string(name: 'TEMPLATES', defaultValue: '', description: 'Comma-separated list of filenames in templates directory to upload. If empty string, then all are uploaded.')
     }
 
     stages {
@@ -11,11 +12,23 @@ pipeline {
                 script {
                     echo "Uploading templates to ${params.NIFI_SERVER_URL}..."
 
-                    def files = findFiles(glob: 'templates/*.xml')
-                    files.each {
-                        echo "Attempting to upload $it"
+                    echo "Retrieving root process group ID"
+                    def rootProcessGroupInfo = readJSON text: sh(script: "${params.NIFI_SERVER_URL}/nifi-api/flow/process-groups/root", returnStdout: true)
+                    def rootProcessGroupId = rootProcessGroupInfo['processGroupFlow']['id']
 
-                        def uploadTemplateCmd = "curl -w '.%{http_code}' -F template=@$it ${params.NIFI_SERVER_URL}/nifi-api/process-groups/07b8ebc9-0171-1000-0bc7-44ab34f61036/templates/upload"
+                    if (params.TEMPLATES == '') {
+                        def files = findFiles(glob: 'templates/*.xml')
+                    } else {
+                        def files = []
+                        params.TEMPLATES.tokenize(',').each{ template_filename ->
+                            files.addAll(findFiles(glob: "templates/${template_filename}"))
+                        }
+                    }
+
+                    files.each { template_filename ->
+                        echo "Attempting to upload $template_filename"
+
+                        def uploadTemplateCmd = "curl -w '.%{http_code}' -F template=@$template_filename ${params.NIFI_SERVER_URL}/nifi-api/process-groups/${rootProcessGroupId}/templates/upload"
                         def response = sh(script: "${uploadTemplateCmd}", returnStdout: true)
                         def responseMessage = response.tokenize('.').first()
                         def responseCode = response.tokenize('.').last()
@@ -48,9 +61,9 @@ pipeline {
                                 error "Received HTTP response code ${responseCode} when uploading ${templateName}, response from server:\n${responseMessage}"
                             }
                         } else if (responseCode == '409') {
-                            echo "A template with the same name as $it already exists, and replacing duplicates is set to false. Skipping template."
+                            echo "A template with the same name as $template_filename already exists, and replacing duplicates is set to false. Skipping template."
                         }else if (responseCode != '201') {
-                            error "Received HTTP response code ${responseCode} when uploading $it, response from server:\n${responseMessage}"
+                            error "Received HTTP response code ${responseCode} when uploading $template_filename, response from server:\n${responseMessage}"
                         }
                     }
                 }

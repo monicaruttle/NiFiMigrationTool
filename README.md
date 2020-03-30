@@ -15,5 +15,3 @@ This workflow keeps your NiFi templates in source control, and automates the dep
 
 ## TODO
 - Configure a source NiFi instance to automatically scrape all templates from.
-- Provide ability to specify a comma-separated list of templates to upload, rather than uploading all of them.
-- Remove harcoded process group endpoint to upload templates to
