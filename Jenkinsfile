@@ -16,10 +16,12 @@ pipeline {
                     def rootProcessGroupInfo = readJSON text: sh(script: "curl ${params.NIFI_SERVER_URL}/nifi-api/flow/process-groups/root", returnStdout: true)
                     def rootProcessGroupId = rootProcessGroupInfo['processGroupFlow']['id']
 
+                    def files = null
                     if (params.TEMPLATES == '') {
-                        def files = findFiles(glob: 'templates/*.xml')
+                        echo "TEMPLATES param is not set, uploading all files in 'templates' directory"
+                        files = findFiles(glob: 'templates/*.xml')
                     } else {
-                        def files = []
+                        files = []
                         params.TEMPLATES.tokenize(',').each{ template_filename ->
                             files.addAll(findFiles(glob: "templates/${template_filename}"))
                         }
