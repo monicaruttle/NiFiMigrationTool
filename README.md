@@ -10,8 +10,18 @@ This workflow keeps your NiFi templates in source control, and automates the dep
 4) Build your job with the NiFi server parameter set to the NiFi instance you would like your templates uploaded to. Specify if you would like to replace any conflicting templates with the same name, or skip them. You can also specify which template files to upload, however the default is to upload all of them.
 
 ## Note
-- Templates must be manually stored in the 'templates' directory.
+- Templates must be manually downloaded and stored in the 'templates' directory from the source NiFi instance.
 - Job must manually be built (i.e. it is not triggered by a merge to master).
 
+## Getting Started with Development
+To contribute to this pipeline, you'll need a NiFi and Jenkins instance running to test your changes. In order to simplify things, you can run them as Docker containers (Docker installation guide: https://docs.docker.com/get-started/#set-up-your-docker-environment)
+
+### Run NiFi and Jenkins
+docker run -d --name nifi -p 8080:8080 apache/nifi:latest
+docker run -d --name jenkins -p 8081:8080 -v /var/jenkins_home jenkins/jenkins
+
+You'll need the IP address of the NiFi container in order to deploy templates to it.
+docker inspect <NiFi container name from docker run command> | jq '.[0].NetworkSettings.Networks.bridge.IPAddress'
+  
 ## TODO
 - Configure a source NiFi instance to automatically scrape all templates from.
