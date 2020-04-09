@@ -29,3 +29,4 @@ docker inspect <NiFi container name from docker run command> | jq '.[0].NetworkS
   
 ## TODO
 - Configure a source NiFi instance to automatically scrape all templates from.
+- Store flows in a NiFi registry instead of in the templates directory.
